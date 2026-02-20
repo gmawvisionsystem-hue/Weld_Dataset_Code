@@ -1,0 +1,67 @@
+cd('C:\Users\Kevin Velasquez\Documents\Contrato_0_Proyecto_Soldadura\Imagenes\Ground_Truth\Top')
+ApiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbHgycDN6emkwM3prMDcwZzFhbnI4OHZoIiwib3JnYW5pemF0aW9uSWQiOiJjbHgycDN6eXYwM3pqMDcwZ2RzamVkOGNrIiwiYXBpS2V5SWQiOiJjbHo2aGdtaXAxaWgwMDd3dTk0Y3RoMDF2Iiwic2VjcmV0IjoiYjYwZWNjMGExZDUwZWUxMzVhMTgxYjQ2MGQ1ZmY4MTAiLCJpYXQiOjE3MjIyMjY5NTMsImV4cCI6MjM1MzM3ODk1M30.IxYwJnAXFSkIGD18D_iBaFO_jLY1GxcddZ0XoAAuvwY';
+headers = {'Authorization', ['Bearer ', ApiKey]};
+options = weboptions('HeaderFields', headers);
+        
+[m n] = size(data);
+% URL de la imagen que quieres descargar desde Labelbox
+
+% Api Key 
+for i=1:n
+
+    image_id = data{1,i}.data_row.external_id;
+    cd('C:\Users\Kevin Velasquez\Documents\Contrato_0_Proyecto_Soldadura\Imagenes\labelbox\top')
+    folder = split(image_id,".");
+    mkdir(folder{1})
+    cd(folder{1})
+    if isempty(data{1,i}.projects.clx4565cd059t072p1z8895il.labels.annotations.objects)
+        im_empty = uint8(3*ones(2800));
+        cd('C:\Users\Kevin Velasquez\Documents\Contrato_0_Proyecto_Soldadura\Imagenes\Top\label')
+        imwrite(im_empty,image_id);
+    else
+        M = uint8(3*ones(2800));
+        [k l] = size(data{1,i}.projects.clx4565cd059t072p1z8895il.labels.annotations.objects);
+        tipo = class(data{1,i}.projects.clx4565cd059t072p1z8895il.labels.annotations.objects);
+        for j = 1:k
+            if strcmp(tipo,'cell')
+            name = data{1,i}.projects.clx4565cd059t072p1z8895il.labels.annotations.objects{j,1}.name;
+            end
+            if strcmp(tipo,'struct')
+            name = data{1,i}.projects.clx4565cd059t072p1z8895il.labels.annotations.objects(j).name;
+            end
+            if ~strcmp(name,'welding cord')
+                if strcmp(tipo,'cell')
+                    link = data{1,i}.projects.clx4565cd059t072p1z8895il.labels.annotations.objects{j,1}.mask.url;
+                end
+                if strcmp(tipo,'struct')
+                    link = data{1,i}.projects.clx4565cd059t072p1z8895il.labels.annotations.objects(j).mask.url;
+                end
+
+            
+                %Descarga de imagen
+                websave([num2str(j) '.png'], link, options);
+                I = imread([num2str(j) '.png']);
+                im = I/255;
+                if strcmp(name,'lackContinuity')
+                    M = M - 3*im;
+                
+                elseif strcmp(name,'splash')
+                    M = M - 2*im;
+
+
+                 elseif strcmp(name,'porosity')
+                     M = M - im;
+
+
+                end
+            end
+        end
+
+        cd('C:\Users\Kevin Velasquez\Documents\Contrato_0_Proyecto_Soldadura\Imagenes\Top\label')
+        imwrite(M,image_id);
+
+        %___________________________________________________________________________________------
+       
+    end
+end
+   
