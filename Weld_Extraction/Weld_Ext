@@ -1,0 +1,25 @@
+
+function [im] = Weld_Ext(I)
+g = rgb2gray(I);
+l = g > 150;
+se = strel('disk',30);
+l1 = imdilate(l,se);
+figure, imshow(l1)
+se = strel('disk',600);
+l2 = imerode(l1,se);
+figure, imshow(l2)
+se = strel('square',100);
+l3 = imdilate(l2,se);
+figure, imshow(l3)
+R = regionprops(l3,'BoundingBox');
+A = regionprops(l3,'Area');
+n = length(R);
+img = imcrop(I,R(1).BoundingBox);
+[M N ~] = size(img);
+n = (N*15)/160;
+m = (N*15)/160;
+R2 =[n m N-2*n M-2*m];
+im = imcrop(img,R2);
+im = imresize(im,[2800 2800]);
+figure, imshow(im)
+end
